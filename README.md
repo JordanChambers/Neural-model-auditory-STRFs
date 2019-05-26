@@ -54,24 +54,45 @@ COMMAND SUMMARY
 ---------------
 
 cd ./carney
+
 matlab mexANmodel.m
+
 matlab dumpjANstmstorcs.m ## repeat for each set of TORCs
+
 cd ../cotorcH ## directory name dependent on set of TORCs
+
 python jcreate_mfile_for_stimprofiles01.py ## repeat for each set of TORCs
+
 matlab htorc.m ## file name dependent on set of TORCs
+
 cd ..
+
 mpicc mpitel.c ## file name dependent on set of TORCs. Needs to be repeated five times for each cell and each state (passive/active)
+
 cd ./results
+
 python jstats.py results_file.txt ## repeat for each results from repetitions above
+
 cd ..
+
 python csyns.py input ## input is the output from last command, repeat for each result
+
 cp jamsyn.c ./jtel/jamsyn_result_name.c ## repeat for each result
+
 cc jamtel.c ## change linked files according to last two commands, repeat for each result
+
 cd ./matlabanalysis
+
 matlab jgraphstrf('../output/jamsyn_dai003b-d2pas0512sm.txt') ## repeat for each result, providing the appropriate filename each time 
+
 cd ..
+
 mpicc mpisentel.c ## file name dependent on set of TORCs. Needs to be repeated five times for each cell and each state (passive/active)
+
 cd ./results
+
 python jsenanal.py best_value pos_file neg_file ## repeat for each result, copy and paste output to ./matlabanalysis/jgraphsynstrmat9.m
+
 cd ../matlabanalysis
+
 matlab jgraphsynstrmat9.m
