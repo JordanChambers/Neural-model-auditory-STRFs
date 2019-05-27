@@ -1,0 +1,76 @@
+#define jFs 40000//16384
+#define jT 2
+#define jWinSize 2048//4096//8192//512//512//256
+#define msyn 2500
+#define mapf 1000
+#define cellnumb 15
+#define flen 25
+#define fnumb 175
+#define gapop 1100
+#define gaspop 1000//100
+#define gavar 255
+#define gapc 100
+#define jtbins 40
+#define ntorc 30
+#define ftorc 15
+#define ttorc 13//25//13
+#define sftorc 100
+#define sttorc 250
+#define torcvar 6
+#define lfreq 500
+#define hfreq 16000
+#define apdelay 100
+
+void jam_syns(void);
+
+void jsoundsignal_input(void);
+void jsound_load_carney_torcs(void);
+
+void wave2aud_load_coch(void);
+void wave2aud_load_cocha(void);
+void wave2aud_load_cochb(void);
+void wave2aud_process(void);
+void wave2aud_filter(void);
+void wave2aud_sigmoid(void);
+void wave2aud_lateral_inhibition(void);
+void wave2aud_half_wave_rectifier(void);
+void wave2aud_leaky_integration(void);
+void wave2aud_dump_fas(void);
+
+void network_run(void);
+void network_set_parameters(void);
+void network_set_inputs(void);
+void network_set_synapses(void);
+void network_sim(void);
+
+void strf_rev_cor(void);
+void strf_normalise(void);
+void strf_normalise_maxabs(void);
+void strf_normalise_1norm(void);
+void strf_mean(void);
+void strf_copy(void);
+void strf_zscore(void);
+void strf_zscore_smooth(void);
+void strf_smooth(void);
+void strf_rev_cor_cal(void);
+void strf_load_stimprofile(void);
+void forwardDFT(void);
+void inverseDFT(void);
+
+void runjga(void);
+void runjgajam(void);
+void runjga_write_res(void);
+void runjga_check_res(void);
+void runjga_check_res_npop(void);
+void runjga_create_ipopulation(void);
+void runjga_create_spopulation(void);
+void runjga_create_npopulation(void);
+void runjga_get_elite(void);
+void runjga_get_parents(void);
+void runjga_crossover(void);
+void runjga_mutate(void);
+void runjga_cost(void);
+void runjga_loadtarget(void);
+void runjga_cost_smooth(void);
+void runjga_loadtarget_smooth(void);
+void runjga_loadtargetvar(void);

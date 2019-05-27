@@ -1,0 +1,202 @@
+void network_set_inputs(void)
+{
+  /*
+    gammatone coefficients: 175 defined by jx = 0:1/24:7.25; to give frequencies of jfreq = 128*2.^jx;
+    example set of torcs have lfreq of 500, hfreq of 16000, and 15 compartments in the frequency range in the analysis (jx = 0:1/3:5; franges = 500*2.^x;), so
+         compartment 1 (500-630) gets inputs from 49-56
+         compartment 2 (630-794) gets inputs from 57-64
+         compartment 3 (794-1000) gets inputs from 65-72
+         compartment 4 (1000-1260) gets inputs from 73-80
+         compartment 5 (1260-1587) gets inputs from 81-88
+         compartment 6 (1587-2000) gets inputs from 89-96
+         compartment 7 (2000-2520) gets inputs from 97-104
+         compartment 8 (2520-3175) gets inputs from 105-112
+         compartment 9 (3175-4000) gets inputs from 113-120
+         compartment 10 (4000-5040) gets inputs from 121-128
+         compartment 11 (5040-6350) gets inputs from 129-136
+         compartment 12 (6350-8000) gets inputs from 137-144
+         compartment 13 (8000-10079) gets inputs from 145-152
+         compartment 14 (10790-12699) gets inputs from 153-160
+         compartment 15 (12699-16000) gets inputs from 161-168
+   */
+
+  for (jata.r[0] = 0; jata.r[0] < cellnumb; jata.r[0]++){
+    for (jata.r[1] = 0; jata.r[1] < cellnumb; jata.r[1]++){
+      jata.jnet.cellinputs[jata.r[0]][jata.r[1]] = -1;
+    }
+  }
+
+  jata.jnet.cellinputs[0][0] = 43;
+  jata.jnet.cellinputs[0][1] = 44;
+  jata.jnet.cellinputs[0][2] = 45;
+  jata.jnet.cellinputs[0][3] = 46;
+  jata.jnet.cellinputs[0][4] = 47;
+  jata.jnet.cellinputs[0][5] = 48;
+  jata.jnet.cellinputs[0][6] = 49;
+  jata.jnet.cellinputs[0][7] = 50;
+  jata.jnet.cellinputs[1][0] = 51;
+  jata.jnet.cellinputs[1][1] = 52;
+  jata.jnet.cellinputs[1][2] = 53;
+  jata.jnet.cellinputs[1][3] = 54;
+  jata.jnet.cellinputs[1][4] = 55;
+  jata.jnet.cellinputs[1][5] = 56;
+  jata.jnet.cellinputs[1][6] = 57;
+  jata.jnet.cellinputs[1][7] = 58;
+  jata.jnet.cellinputs[2][0] = 59;
+  jata.jnet.cellinputs[2][1] = 60;
+  jata.jnet.cellinputs[2][2] = 61;
+  jata.jnet.cellinputs[2][3] = 62;
+  jata.jnet.cellinputs[2][4] = 63;
+  jata.jnet.cellinputs[2][5] = 64;
+  jata.jnet.cellinputs[2][6] = 65;
+  jata.jnet.cellinputs[2][7] = 66;
+  jata.jnet.cellinputs[3][0] = 67;
+  jata.jnet.cellinputs[3][1] = 68;
+  jata.jnet.cellinputs[3][2] = 69;
+  jata.jnet.cellinputs[3][3] = 70;
+  jata.jnet.cellinputs[3][4] = 71;
+  jata.jnet.cellinputs[3][5] = 72;
+  jata.jnet.cellinputs[3][6] = 73;
+  jata.jnet.cellinputs[3][7] = 74;
+  jata.jnet.cellinputs[4][0] = 75;
+  jata.jnet.cellinputs[4][1] = 76;
+  jata.jnet.cellinputs[4][2] = 77;
+  jata.jnet.cellinputs[4][3] = 78;
+  jata.jnet.cellinputs[4][4] = 79;
+  jata.jnet.cellinputs[4][5] = 80;
+  jata.jnet.cellinputs[4][6] = 81;
+  jata.jnet.cellinputs[4][7] = 82;
+  jata.jnet.cellinputs[5][0] = 83;
+  jata.jnet.cellinputs[5][1] = 84;
+  jata.jnet.cellinputs[5][2] = 85;
+  jata.jnet.cellinputs[5][3] = 86;
+  jata.jnet.cellinputs[5][4] = 87;
+  jata.jnet.cellinputs[5][5] = 88;
+  jata.jnet.cellinputs[5][6] = 89;
+  jata.jnet.cellinputs[5][7] = 90;
+  jata.jnet.cellinputs[6][0] = 91;
+  jata.jnet.cellinputs[6][1] = 92;
+  jata.jnet.cellinputs[6][2] = 93;
+  jata.jnet.cellinputs[6][3] = 94;
+  jata.jnet.cellinputs[6][4] = 95;
+  jata.jnet.cellinputs[6][5] = 96;
+  jata.jnet.cellinputs[6][6] = 97;
+  jata.jnet.cellinputs[6][7] = 98;
+  jata.jnet.cellinputs[7][0] = 99;
+  jata.jnet.cellinputs[7][1] = 100;
+  jata.jnet.cellinputs[7][2] = 101;
+  jata.jnet.cellinputs[7][3] = 102;
+  jata.jnet.cellinputs[7][4] = 103;
+  jata.jnet.cellinputs[7][5] = 104;
+  jata.jnet.cellinputs[7][6] = 105;
+  jata.jnet.cellinputs[7][7] = 106;
+  jata.jnet.cellinputs[8][0] = 107;
+  jata.jnet.cellinputs[8][1] = 108;
+  jata.jnet.cellinputs[8][2] = 109;
+  jata.jnet.cellinputs[8][3] = 110;
+  jata.jnet.cellinputs[8][4] = 111;
+  jata.jnet.cellinputs[8][5] = 112;
+  jata.jnet.cellinputs[8][6] = 113;
+  jata.jnet.cellinputs[8][7] = 114;
+  jata.jnet.cellinputs[9][0] = 115;
+  jata.jnet.cellinputs[9][1] = 116;
+  jata.jnet.cellinputs[9][2] = 117;
+  jata.jnet.cellinputs[9][3] = 118;
+  jata.jnet.cellinputs[9][4] = 119;
+  jata.jnet.cellinputs[9][5] = 120;
+  jata.jnet.cellinputs[9][6] = 121;
+  jata.jnet.cellinputs[9][7] = 122;
+  jata.jnet.cellinputs[10][0] = 123;
+  jata.jnet.cellinputs[10][1] = 124;
+  jata.jnet.cellinputs[10][2] = 125;
+  jata.jnet.cellinputs[10][3] = 126;
+  jata.jnet.cellinputs[10][4] = 127;
+  jata.jnet.cellinputs[10][5] = 128;
+  jata.jnet.cellinputs[10][6] = 129;
+  jata.jnet.cellinputs[10][7] = 130;
+  jata.jnet.cellinputs[11][0] = 131;
+  jata.jnet.cellinputs[11][1] = 132;
+  jata.jnet.cellinputs[11][2] = 133;
+  jata.jnet.cellinputs[11][3] = 134;
+  jata.jnet.cellinputs[11][4] = 135;
+  jata.jnet.cellinputs[11][5] = 136;
+  jata.jnet.cellinputs[11][6] = 137;
+  jata.jnet.cellinputs[11][7] = 138;
+  jata.jnet.cellinputs[12][0] = 139;
+  jata.jnet.cellinputs[12][1] = 140;
+  jata.jnet.cellinputs[12][2] = 141;
+  jata.jnet.cellinputs[12][3] = 142;
+  jata.jnet.cellinputs[12][4] = 143;
+  jata.jnet.cellinputs[12][5] = 144;
+  jata.jnet.cellinputs[12][6] = 145;
+  jata.jnet.cellinputs[12][7] = 146;
+  jata.jnet.cellinputs[13][0] = 147;
+  jata.jnet.cellinputs[13][1] = 148;
+  jata.jnet.cellinputs[13][2] = 149;
+  jata.jnet.cellinputs[13][3] = 150;
+  jata.jnet.cellinputs[13][4] = 151;
+  jata.jnet.cellinputs[13][5] = 152;
+  jata.jnet.cellinputs[13][6] = 153;
+  jata.jnet.cellinputs[13][7] = 154;
+  jata.jnet.cellinputs[14][0] = 155;
+  jata.jnet.cellinputs[14][1] = 156;
+  jata.jnet.cellinputs[14][2] = 157;
+  jata.jnet.cellinputs[14][3] = 158;
+  jata.jnet.cellinputs[14][4] = 159;
+  jata.jnet.cellinputs[14][5] = 160;
+  jata.jnet.cellinputs[14][6] = 161;
+  jata.jnet.cellinputs[14][7] = 162;
+
+}
+
+void network_set_synapses(void)
+{
+  for (jata.r[0] = 0; jata.r[0] < cellnumb; jata.r[0]++){
+    jata.jnet.cells[jata.r[0]].nstmspos = 0;
+    for (jata.r[1] = 0; jata.r[1] < msyn; jata.r[1]++){
+	jata.jnet.cells[jata.r[0]].esyn[jata.r[1]] = -1;
+    }
+  }
+
+  for (jata.r[0] = 0; jata.r[0] < cellnumb; jata.r[0]++){
+    for (jata.r[1] = 0; jata.r[1] < cellnumb; jata.r[1]++){
+      if (jata.jga.cpop[jata.jga.id][cellnumb*jata.r[0]+jata.r[1]] == 0){
+	jata.jnet.cells[jata.r[0]].eout[jata.r[1]] = -1;
+	jata.jnet.cells[jata.r[0]].edlay[jata.r[1]] = 0;
+	jata.jnet.cells[jata.r[0]].estn[jata.r[1]] = 0;
+	jata.jnet.cells[jata.r[0]].iout[jata.r[1]] = -1;
+	jata.jnet.cells[jata.r[0]].idlay[jata.r[1]] = 0;
+	jata.jnet.cells[jata.r[0]].istn[jata.r[1]] = 0;
+      }
+      else if (jata.jga.cpop[jata.jga.id][cellnumb*jata.r[0]+jata.r[1]] > 0){
+	jata.jnet.cells[jata.r[0]].eout[jata.r[1]] = jata.r[1];
+	jata.jnet.cells[jata.r[0]].edlay[jata.r[1]] = 2*abs(jata.r[0]-jata.r[1]);
+	jata.jnet.cells[jata.r[0]].estn[jata.r[1]] = jata.jga.cpop[jata.jga.id][cellnumb*jata.r[0]+jata.r[1]]/50.0;
+	jata.jnet.cells[jata.r[0]].iout[jata.r[1]] = -1;
+	jata.jnet.cells[jata.r[0]].idlay[jata.r[1]] = 0;
+	jata.jnet.cells[jata.r[0]].istn[jata.r[1]] = 0;
+	//printf("%d goes to %d\n", jata.r[0], jata.r[1]);
+      }
+      else{
+	jata.jnet.cells[jata.r[0]].eout[jata.r[1]] = -1;
+	jata.jnet.cells[jata.r[0]].edlay[jata.r[1]] = 0;
+	jata.jnet.cells[jata.r[0]].estn[jata.r[1]] = 0;
+	jata.jnet.cells[jata.r[0]].iout[jata.r[1]] = jata.r[1];
+	jata.jnet.cells[jata.r[0]].idlay[jata.r[1]] = 2*abs(jata.r[0]-jata.r[1]);
+	jata.jnet.cells[jata.r[0]].istn[jata.r[1]] = fabs(jata.jga.cpop[jata.jga.id][cellnumb*jata.r[0]+jata.r[1]]/50.0);
+	//printf("%d I goes to %d with %g\n", jata.r[0], jata.r[1], jata.jnet.cells[jata.r[0]].istn[jata.r[1]]);
+      }
+    }
+  }
+  for (jata.r[0] = 0; jata.r[0] < cellnumb; jata.r[0]++){
+    if (jata.jga.cpop[jata.jga.id][cellnumb*cellnumb+jata.r[0]] >= 0){
+      jata.jnet.cells[jata.r[0]].dfas = 1;
+      jata.jnet.cells[jata.r[0]].capdelay = 100 + jata.jga.cpop[jata.jga.id][cellnumb*cellnumb+jata.r[0]]*1900.0/jata.jga.gaub;
+    }
+    else{
+      jata.jnet.cells[jata.r[0]].dfas = -1;
+      jata.jnet.cells[jata.r[0]].capdelay = 100 + abs(jata.jga.cpop[jata.jga.id][cellnumb*cellnumb+jata.r[0]])*1900.0/abs(jata.jga.galb);
+    }
+  }
+}
+

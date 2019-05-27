@@ -1,0 +1,65 @@
+void jsoundsignal_input(void)
+{
+  //sprintf(&jata.fname[0], "jstim30sec_%d.txt", jata.strfrep);
+  //sprintf(&jata.fname[0], "jstim10s40k_%d.txt", jata.strfrep-1);
+  sprintf(&jata.fname[0], "./torcsc1/c1torc424v501%ds2.txt", jata.strfrep);
+  jata.f = fopen(&jata.fname[0], "r");
+  jata.r[0] = 1;
+  jata.sscnt = 0;
+  while (jata.r[0] == 1){
+    jata.r[1] = fscanf(jata.f, "%lf %lf", &jata.sst[jata.sscnt], &jata.ss[jata.sscnt]);
+    //printf("%d %g %g\n", jata.r[1], jata.ss[jata.sscnt][0], jata.ss[jata.sscnt][1]);
+    if (jata.r[1] != 2){
+      jata.r[0] = 0;
+      break;
+    }
+    jata.sscnt++;
+  }
+  //for (jata.r[0] = 0; jata.r[0] < jata.sscnt; jata.r[0]++){
+  //  printf("%f %f\n", jata.ss[jata.r[0]][0], jata.ss[jata.r[0]][1]);
+  //}
+  fclose(jata.f);
+}
+
+void jsound_load_carney_torcs(void)
+{
+  //printf("Loading carney torcs\n");
+  for (jata.r[2] = 0; jata.r[2] < cellnumb; jata.r[2]++){
+    //sprintf(&jata.fname[0], "./cotorcV/cstmsc1torc_%d_%d_cat025s2_%d.txt", jata.strfrep, jata.strfrepss, (jata.r[2])+1);
+    //sprintf(&jata.fname[0], "./cotorcH/cstmsc1torcH_%d_%d_cat025s2_%d.txt", jata.strfrep, jata.strfrepss, (jata.r[2])+1);
+    sprintf(&jata.fname[0], "./cotorcL/cstmsc1torcL_%d_%d_cat025s2_%d.txt", jata.strfrep, jata.strfrepss, (jata.r[2])+1);    //printf("%s\n", jata.fname);
+    //sprintf(&jata.fname[0], "./cotorcV/cstmsc1torcV448_%d_%d_cat025s2_%d.txt", jata.strfrep, jata.strfrepss, (jata.r[2])+1);
+    jata.f = fopen(&jata.fname[0], "r");
+    jata.r[0] = 1;
+    jata.sscnt = 0;
+    while (jata.r[0] == 1){
+      //printf("hello\n");
+      jata.r[1] = fscanf(jata.f, "%d %lf", &jata.r[3], &jata.d[0]);
+      //printf("%d %d %g\n", jata.r[1], jata.r[3], jata.d[0]);
+      if (jata.r[1] != 2){
+	jata.r[0] = 0;
+	break;
+      }
+      if (jata.jga.cpop[jata.jga.id][cellnumb*cellnumb+jata.r[2]] >= 0){
+	//jata.jnet.cells[jata.r[2]].esyn[jata.sscnt] = (jata.d[0]*1000) + 50 + (jata.jga.cpop[jata.jga.id][cellnumb*cellnumb+jata.r[2]+cellnumb]*10);
+	jata.jnet.cells[jata.r[2]].esyn[jata.sscnt] = (jata.d[0]*1000) + 48.07 + (jata.jga.cpop[jata.jga.id][cellnumb*cellnumb+jata.r[2]+cellnumb]*9.62);//250/13 = 19.23....48.07 comes from 2.5*19.23....9.62 come from 19.23/2
+	//jata.jnet.cells[jata.r[2]].esyn[jata.sscnt] = (jata.d[0]*1000) + 25 + (jata.jga.cpop[jata.jga.id][cellnumb*cellnumb+jata.r[2]+cellnumb]*5);//250/25 = 10....25 comes from 2.5*10....5 come from 10/2
+	//jata.jnet.cells[jata.r[2]].ewt[jata.sscnt] = jata.jga.cpop[jata.jga.id][cellnumb*cellnumb+jata.r[2]]/10.0;
+	jata.jnet.cells[jata.r[2]].ewt[jata.sscnt] = 0.015*pow(jata.jga.cpop[jata.jga.id][cellnumb*cellnumb+jata.r[2]],2);///10.0;
+      }
+      else{
+	//jata.jnet.cells[jata.r[2]].isyn[jata.sscnt] = (jata.d[0]*1000) + 50 + (jata.jga.cpop[jata.jga.id][cellnumb*cellnumb+jata.r[2]+cellnumb]*10);
+	jata.jnet.cells[jata.r[2]].isyn[jata.sscnt] = (jata.d[0]*1000) + 48.07 + (jata.jga.cpop[jata.jga.id][cellnumb*cellnumb+jata.r[2]+cellnumb]*9.62);//250/13 = 19.23....48.07 comes from 2.5*19.23....9.62 come from 19.23/2
+	//jata.jnet.cells[jata.r[2]].isyn[jata.sscnt] = (jata.d[0]*1000) + 25 + (jata.jga.cpop[jata.jga.id][cellnumb*cellnumb+jata.r[2]+cellnumb]*5);//250/25 = 10....25 comes from 2.5*10....5 come from 10/2
+	//jata.jnet.cells[jata.r[2]].iwt[jata.sscnt] = fabs(jata.jga.cpop[jata.jga.id][cellnumb*cellnumb+jata.r[2]])/10.0;
+	jata.jnet.cells[jata.r[2]].iwt[jata.sscnt] = fabs(0.015*pow(jata.jga.cpop[jata.jga.id][cellnumb*cellnumb+jata.r[2]],2));///10.0;
+      }
+      jata.sscnt++;
+    }
+    //for (jata.r[0] = 0; jata.r[0] < jata.sscnt; jata.r[0]++){
+    //  printf("%f %f\n", jata.ss[jata.r[0]][0], jata.ss[jata.r[0]][1]);
+    //}
+    fclose(jata.f);
+  }
+  //printf("Finished loading carney torcs\n");
+}

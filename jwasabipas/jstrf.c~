@@ -1,0 +1,519 @@
+void strf_rev_cor(void)
+{
+  //printf("In strf_rev_cor\n");
+  if (jata.torc.getsimdata == 0) strf_load_stimprofile();
+  /*for (jata.r[0] = 0; jata.r[0] < ntorc; jata.r[0]++){
+    for (jata.r[1] = 0; jata.r[1] < ftorc; jata.r[1]++){
+      printf("%d,%d:::", jata.r[0], jata.r[1]);
+      for (jata.r[2] = 0; jata.r[2] < ttorc; jata.r[2]++){
+	printf(" %g", jata.torc.stimprofile[jata.r[0]][jata.r[1]][jata.r[2]]);
+      }
+      printf("\n");
+    }
+    }*/
+  strf_rev_cor_cal();
+}
+
+void strf_rev_cor_cal(void)
+{
+  //printf("In strf rev cor cal\n");
+  //printf("%d:: strfrcc1\n", jata.jmpi.id);
+  for (jata.r[0] = cellnumb; jata.r[0] < cellnumb+topdc; jata.r[0]++){
+    jata.taps[jata.r[0]] += jata.jnet.cells[jata.r[0]].nstmspos;
+  }
+  for (jata.r[0] = 0; jata.r[0] < cellnumb; jata.r[0]++){
+    for (jata.r[1] = 0; jata.r[1] < ftorc; jata.r[1]++){
+      for (jata.r[2] = 0; jata.r[2] < ttorc; jata.r[2]++){
+	jata.arcstrf[jata.r[1]][jata.r[2]] = 0;
+      }
+    }
+    for (jata.r[1] = 0; jata.r[1] < ttorc; jata.r[1]++){
+      jata.torc.aps[jata.r[1]] = 0;
+    }
+    for (jata.r[1] = 0; jata.r[1] < 250; jata.r[1]++){
+      jata.torc.raster[jata.r[1]] = 0;
+    }
+    jata.taps[jata.r[0]] += jata.jnet.cells[jata.r[0]].nstmspos;
+    jata.r[4] = 0;
+    //printf("nstmspos is %d\n", jata.jnet.cells[jata.r[0]].nstmspos);
+    for (jata.r[1] = 0; jata.r[1] < jata.jnet.cells[jata.r[0]].nstmspos; jata.r[1]++){
+      //printf("Cell spike at %g\n", jata.jnet.cells[jata.r[0]].nstms[jata.r[1]]);
+      if (jata.jnet.cells[jata.r[0]].nstms[jata.r[1]] < jata.torc.basep){
+	continue; //remove first cycle
+      }
+      jata.r[3] = jata.jnet.cells[jata.r[0]].nstms[jata.r[1]];
+      jata.r[2] = (jata.r[3] % jata.torc.basep);
+      //printf("%d %d\n", jata.r[3], jata.r[2]);
+      jata.torc.raster[jata.r[2]]++;
+      jata.r[4]++;
+    }
+    //printf("raster:");
+    for (jata.r[1] = 0; jata.r[1] < jata.torc.basep; jata.r[1]++){
+      jata.jfftw.s[jata.r[1]] = jata.torc.raster[jata.r[1]]/7.0; //devide by the number of cycles (note first cycle removed)
+      //printf(" %g", jata.jfftw.s[jata.r[1]]);
+    }
+    //printf("\n");
+    //printf("%d:: strfrcc2\n", jata.jmpi.id);
+    /*printf("raster\n");
+    for (jata.r[1] = 0; jata.r[1] < jata.torc.basep; jata.r[1]++){
+      printf(" %g", in[jata.r[1]]);
+    }
+    printf("\n");*/
+    //printf("%d:: strfrcc2a0\n", jata.jmpi.id);
+    //jata.jfftw.jplan = fftw_plan_dft_r2c_1d(jata.torc.basep, in, out, FFTW_ESTIMATE);
+    jata.jfftw.n = jata.torc.basep;
+    forwardDFT();
+    //printf("%d:: strfrcc2a1\n", jata.jmpi.id);
+    //fftw_execute(jata.jfftw.jplan);
+    //printf("%d:: strfrcc2a2\n", jata.jmpi.id);
+    //printf("In strf rev cor cal - passed fftw_execute\n");
+    /*printf("raster fft\n");
+    for (jata.r[2] = 0; jata.r[2] < jata.torc.basep/2; jata.r[2]++){
+      printf(" %g + %gi\n", out[jata.r[2]][0], out[jata.r[2]][1]);
+    }
+    printf("\n");*/
+    //fftw_destroy_plan(jata.jfftw.jplan);
+    //printf("%d:: strfrcc2a3\n", jata.jmpi.id);
+    //printf("In strf rev cor cal - passed fftw_destroy_plan\n");
+    //jata.jfftw.jplan = fftw_plan_dft_c2r_1d(ttorc, out, in, FFTW_ESTIMATE);
+    jata.jfftw.n = ttorc;
+    inverseDFT();
+    //printf("%d:: strfrcc2a\n", jata.jmpi.id);
+    //printf("In strf rev cor cal - passed fftw_plan after destroy\n");
+    //fftw_execute(jata.jfftw.jplan);
+    //printf("%d:: strfrcc2a4\n", jata.jmpi.id);
+    /*printf("aps13: ");
+    //for (jata.r[1] = 15; jata.r[1] >= 0; jata.r[1]--){
+    for (jata.r[1] = 0; jata.r[1] < ttorc; jata.r[1]++){
+      printf(" %g", in[jata.r[1]]);
+    }
+    printf("\n\n");*/
+    //printf("aps: ");
+    for (jata.r[1] = 0; jata.r[1] < ttorc; jata.r[1]++){
+      jata.torc.aps[jata.r[1]] = (jata.jfftw.s[jata.r[1]]/ttorc)*1000.0*ttorc/jata.torc.basep;
+      //printf("%g ", jata.torc.aps[jata.r[1]]);
+    }
+    //printf("\n\n");
+    //exit(0);
+    for (jata.r[1] = 0; jata.r[1] < ftorc; jata.r[1]++){
+      //printf("stimprofile at %d: ", jata.r[1]);
+      for (jata.r[2] = 0; jata.r[2] < ttorc; jata.r[2]++){
+	jata.jfftw.s[jata.r[2]] = jata.torc.stimprofile[jata.strfrep-1][jata.r[1]][jata.r[2]];
+	//printf(" %g", in[jata.r[2]]);
+      }
+      //printf("\n");
+      //fftw_destroy_plan(jata.jfftw.jplan);
+      //jata.jfftw.jplan = fftw_plan_dft_r2c_1d(ttorc, in, out, FFTW_ESTIMATE);
+      jata.jfftw.n = ttorc;
+      forwardDFT();
+      //fftw_execute(jata.jfftw.jplan);
+      //printf("stimholder: ");
+      for (jata.r[2] = 0; jata.r[2] < (ttorc/2 + 1); jata.r[2]++){
+	jata.torc.stimholder[0][jata.r[2]][0] = jata.jfftw.a[jata.r[2]]; //
+	jata.torc.stimholder[0][jata.r[2]][1] = -jata.jfftw.b[jata.r[2]]; //
+	//printf(" %g + %gi", jata.torc.stimholder[0][jata.r[2]][0], jata.torc.stimholder[0][jata.r[2]][1]);//, jata.jfft.a[jata.r[2]]);
+      }
+      //printf("\n");
+      //printf("aps: ");
+      //printf("%d:: strfrcc3\n", jata.jmpi.id);
+      for (jata.r[2] = 0; jata.r[2] < ttorc; jata.r[2]++){
+	jata.jfftw.s[jata.r[2]] = jata.torc.aps[jata.r[2]];
+	//printf("%g ", in[jata.r[2]]);
+      }
+      //printf("\n");
+      //fftw_destroy_plan(jata.jfftw.jplan);
+      //jata.jfftw.jplan = fftw_plan_dft_r2c_1d(ttorc, in, out, FFTW_ESTIMATE);
+      jata.jfftw.n = ttorc;
+      forwardDFT();
+      //fftw_execute(jata.jfftw.jplan);
+      /*printf("fft aps: ");
+      for (jata.r[2] = 0; jata.r[2] < (ttorc/2 + 1); jata.r[2]++){
+	printf(" %g + %gi", out[jata.r[2]][0], out[jata.r[2]][1]);//, jata.jfft.a[jata.r[2]]);
+      }
+      printf("\n");*/
+      for (jata.r[2] = 0; jata.r[2] < (ttorc/2 + 1); jata.r[2]++){
+	jata.d[0] = (jata.jfftw.a[jata.r[2]]*jata.torc.stimholder[0][jata.r[2]][0]) - (jata.jfftw.b[jata.r[2]]*jata.torc.stimholder[0][jata.r[2]][1]);
+	jata.d[1] = (jata.jfftw.a[jata.r[2]]*jata.torc.stimholder[0][jata.r[2]][1]) + (jata.jfftw.b[jata.r[2]]*jata.torc.stimholder[0][jata.r[2]][0]);
+	//printf("pos %d: %g %g %g %g gives %g %g\n", jata.r[2], out[jata.r[2]][0], out[jata.r[2]][1], jata.torc.stimholder[0][jata.r[2]][0], jata.torc.stimholder[0][jata.r[2]][1], jata.d[0], jata.d[1]);
+	jata.jfftw.a[jata.r[2]] = jata.d[0];
+	jata.jfftw.b[jata.r[2]] = jata.d[1];
+      }
+      /*printf("Stim and aps: ");
+      for (jata.r[2] = 0; jata.r[2] < ttorc; jata.r[2]++){
+	printf("%g + %gi ", out[jata.r[2]][0], out[jata.r[2]][1]);
+	}
+	printf("\n");*/
+      //fftw_destroy_plan(jata.jfftw.jplan);
+      //jata.jfftw.jplan = fftw_plan_dft_c2r_1d(ttorc, out, in, FFTW_ESTIMATE);
+      jata.jfftw.n = ttorc;
+      inverseDFT();
+      //jata.jfftw.jplan = fftw_plan_dft_1d(ttorc, out, jata.jfftw.cout, FFTW_BACKWARD, FFTW_ESTIMATE);
+      //fftw_execute(jata.jfftw.jplan);
+      //printf("arcstrf: ");
+      for (jata.r[2] = 0; jata.r[2] < ttorc; jata.r[2]++){
+	jata.arcstrf[jata.r[1]][jata.r[2]] = jata.jfftw.s[jata.r[2]]/ttorc;
+	//printf("%g ", jata.arcstrf[jata.r[1]][jata.r[2]]);
+      }
+      //printf("\n");
+    }
+    //printf("%d:: strfrcc4\n", jata.jmpi.id);
+    jata.d[0] = 0;
+    jata.d[1] = 0;
+    for (jata.r[1] = 0; jata.r[1] < ftorc; jata.r[1]++){
+      for (jata.r[2] = 0; jata.r[2] < ttorc; jata.r[2]++){
+	jata.arcstrf[jata.r[1]][jata.r[2]] /= 13.0;
+	jata.d[0] += pow(jata.torc.stimprofile[jata.strfrep][jata.r[1]][jata.r[2]], 2);
+	jata.d[1]++;
+      }
+    }
+    jata.d[0] /= jata.d[1];
+    if (jata.d[0] == 0) continue;
+    for (jata.r[1] = 0; jata.r[1] < ftorc; jata.r[1]++){
+      for (jata.r[2] = 0; jata.r[2] < ttorc; jata.r[2]++){
+	jata.arcstrf[jata.r[1]][jata.r[2]] = jata.arcstrf[jata.r[1]][jata.r[2]]*(2*jata.torc.ripple_count/jata.d[0])/ntorc;//pow(jata.d[0],2))/ntorc;
+	jata.arcstrf[jata.r[1]][jata.r[2]] /= jata.torc.reps;
+      }
+    }
+    //printf("ave strf:\n");
+    for (jata.r[1] = 0; jata.r[1] < ftorc; jata.r[1]++){
+      for (jata.r[2] = 0; jata.r[2] < ttorc; jata.r[2]++){
+	jata.avestrf[jata.r[0]][jata.r[1]][jata.r[2]] += jata.arcstrf[jata.r[1]][jata.r[2]];
+	//printf("%g ", jata.avestrf[jata.r[0]][jata.r[1]][jata.r[2]]);
+      }
+      //printf(";\n");
+    }
+    /*if (jata.r[0] == 13){
+      printf("ave strf calculated from %d aps (%d after first cycle):\n", jata.jnet.cells[jata.r[0]].nstmspos, jata.r[4]);
+      for (jata.r[1] = 0; jata.r[1] < ftorc; jata.r[1]++){
+	for (jata.r[2] = 0; jata.r[2] < ttorc; jata.r[2]++){
+	  jata.avestrf[jata.r[0]][jata.r[1]][jata.r[2]] += jata.arcstrf[jata.r[1]][jata.r[2]];
+	  printf("%g ", jata.arcstrf[jata.r[1]][jata.r[2]]);
+	}
+	printf(";\n");
+      }
+      }*/
+  }
+  //printf("%d:: strfrcc5\n", jata.jmpi.id);
+}
+
+void strf_normalise(void)
+{
+  //strf_normalise_maxabs();
+  strf_normalise_1norm();
+}
+
+void strf_normalise_maxabs(void)
+{
+  for (jata.r[0] = 0; jata.r[0] < cellnumb; jata.r[0]++){
+    jata.d[0] = 0;
+    for (jata.r[1] = 0; jata.r[1] < ftorc; jata.r[1]++){
+      for (jata.r[2] = 0; jata.r[2] < ttorc; jata.r[2]++){
+	if (fabs(jata.avestrf[jata.r[0]][jata.r[1]][jata.r[2]]) > jata.d[0]){
+	  jata.d[0] = fabs(jata.avestrf[jata.r[0]][jata.r[1]][jata.r[2]]);
+	}
+      }
+    }
+    if (jata.d[0] == 0) continue;
+    for (jata.r[1] = 0; jata.r[1] < ftorc; jata.r[1]++){
+      for (jata.r[2] = 0; jata.r[2] < ttorc; jata.r[2]++){
+	//jata.avestrf[jata.r[0]][jata.r[1]][jata.r[2]] /= jata.d[0];
+	jata.tavestrf[jata.r[0]][jata.r[1]][jata.r[2]] += jata.avestrf[jata.r[0]][jata.r[1]][jata.r[2]]/jata.d[0];
+      }
+    }
+  }
+}
+
+void strf_normalise_1norm(void)
+{
+  for (jata.r[0] = 0; jata.r[0] < cellnumb; jata.r[0]++){
+    jata.d[0] = -100000;
+    jata.d[1] = 100000;
+    for (jata.r[1] = 0; jata.r[1] < ftorc; jata.r[1]++){
+      for (jata.r[2] = 0; jata.r[2] < ttorc; jata.r[2]++){
+	if (jata.avestrf[jata.r[0]][jata.r[1]][jata.r[2]] > jata.d[0]){
+	  jata.d[0] = jata.avestrf[jata.r[0]][jata.r[1]][jata.r[2]];
+	}
+	if (jata.avestrf[jata.r[0]][jata.r[1]][jata.r[2]] < jata.d[1]){
+	  jata.d[1] = jata.avestrf[jata.r[0]][jata.r[1]][jata.r[2]];
+	}
+      }
+    }
+    if ((jata.d[0]-jata.d[1]) == 0) continue;
+    for (jata.r[1] = 0; jata.r[1] < ftorc; jata.r[1]++){
+      for (jata.r[2] = 0; jata.r[2] < ttorc; jata.r[2]++){
+	jata.avestrf[jata.r[0]][jata.r[1]][jata.r[2]] = 2*((jata.avestrf[jata.r[0]][jata.r[1]][jata.r[2]] - jata.d[1])/(jata.d[0] - jata.d[1])) - 1;
+      }
+    }
+  }
+}
+
+void strf_mean(void)
+{
+  for (jata.r[0] = 0; jata.r[0] < cellnumb; jata.r[0]++){
+    for (jata.r[1] = 0; jata.r[1] < ftorc; jata.r[1]++){
+      for (jata.r[2] = 0; jata.r[2] < ttorc; jata.r[2]++){
+	jata.tavestrf[jata.r[0]][jata.r[1]][jata.r[2]] += jata.avestrf[jata.r[0]][jata.r[1]][jata.r[2]]/5.0;
+      }
+    }
+  }
+}
+
+void strf_copy(void)
+{
+  for (jata.r[0] = 0; jata.r[0] < cellnumb; jata.r[0]++){
+    for (jata.r[1] = 0; jata.r[1] < ftorc; jata.r[1]++){
+      for (jata.r[2] = 0; jata.r[2] < ttorc; jata.r[2]++){
+	jata.tavestrf[jata.r[0]][jata.r[1]][jata.r[2]] = jata.avestrf[jata.r[0]][jata.r[1]][jata.r[2]];
+      }
+    }
+  }
+}
+
+void strf_zscore(void)
+{
+  for (jata.r[0] = 0; jata.r[0] < cellnumb; jata.r[0]++){
+    jata.d[0] = 0;
+    for (jata.r[1] = 0; jata.r[1] < ftorc; jata.r[1]++){
+      for (jata.r[2] = 0; jata.r[2] < ttorc; jata.r[2]++){
+	jata.d[0] += jata.avestrf[jata.r[0]][jata.r[1]][jata.r[2]];
+      }
+    }
+    //printf("d[0] is %g\n", jata.d[0]);
+    jata.d[1] = 0;
+    for (jata.r[1] = 0; jata.r[1] < ftorc; jata.r[1]++){
+      for (jata.r[2] = 0; jata.r[2] < ttorc; jata.r[2]++){
+	if (fabs(jata.avestrf[jata.r[0]][jata.r[1]][jata.r[2]]) > jata.d[0]){
+	  jata.d[1] += pow((jata.avestrf[jata.r[0]][jata.r[1]][jata.r[2]]-jata.d[0]), 2);
+	}
+      }
+    }
+    //printf("d[1] is %g\n", jata.d[1]);
+    jata.d[1] = pow((jata.d[1]/(ftorc*ttorc)), 0.5);
+    //printf("d[1] is %g\n", jata.d[1]);
+    for (jata.r[1] = 0; jata.r[1] < ftorc; jata.r[1]++){
+      for (jata.r[2] = 0; jata.r[2] < ttorc; jata.r[2]++){
+	if (fabs(jata.d[1]) <= 0.00000001) jata.tavestrf[jata.r[0]][jata.r[1]][jata.r[2]] = 10000;
+	else jata.tavestrf[jata.r[0]][jata.r[1]][jata.r[2]] = (jata.avestrf[jata.r[0]][jata.r[1]][jata.r[2]] - jata.d[0])/jata.d[1];
+	if (fabs(jata.tavestrf[jata.r[0]][jata.r[1]][jata.r[2]]) < 3) jata.tavestrf[jata.r[0]][jata.r[1]][jata.r[2]] = 0;
+	/*if (fabs(jata.tavestrf[jata.r[0]][jata.r[1]][jata.r[2]]) < 3){
+	  jata.r[3] = 0;
+	  if (jata.r[1]+1 >= ftorc){
+	    if (fabs(jata.tavestrf[jata.r[0]][0][jata.r[2]]) > 3) jata.r[3] = 1;
+	  }
+	  else{
+	    if (fabs(jata.tavestrf[jata.r[0]][jata.r[1]+1][jata.r[2]]) > 3) jata.r[3] = 2;
+	  }
+	  if (jata.r[1]-1 < 0){
+	    if (fabs(jata.tavestrf[jata.r[0]][ftorc-1][jata.r[2]]) > 3) jata.r[3] = 3;
+	  }
+	  else{
+	    if (fabs(jata.tavestrf[jata.r[0]][jata.r[1]-1][jata.r[2]]) > 3) jata.r[3] = 4;
+	  }
+	  if (jata.r[2]+1 >= ttorc){
+	    if (fabs(jata.tavestrf[jata.r[0]][jata.r[1]][0]) > 3) jata.r[3] = 5;
+	  }
+	  else{
+	    if (fabs(jata.tavestrf[jata.r[0]][jata.r[1]][jata.r[2]+1]) > 3) jata.r[3] = 6;
+	  }
+	  if (jata.r[2]-1 < 0){
+	    if (fabs(jata.tavestrf[jata.r[0]][jata.r[1]][ttorc-1]) > 3) jata.r[3] = 7;
+	  }
+	  else{
+	    if (fabs(jata.tavestrf[jata.r[0]][jata.r[1]][jata.r[2]-1]) > 3) jata.r[3] = 8;
+	  }
+	  if (jata.r[3] >= 1){
+	    printf("%d,%d,%d => taken because %d\n", jata.r[0], jata.r[1], jata.r[2], jata.r[3]);
+	    if (fabs(jata.d[1]) <= 0.00000001) jata.tavestrf[jata.r[0]][jata.r[1]][jata.r[2]] = 10000;
+	    else jata.tavestrf[jata.r[0]][jata.r[1]][jata.r[2]] = (jata.avestrf[jata.r[0]][jata.r[1]][jata.r[2]] - jata.d[0])/jata.d[1];
+	  }
+	  }*/
+      }
+    }
+  }
+}
+
+void strf_zscore_smooth(void)
+{
+  for (jata.r[0] = 0; jata.r[0] < cellnumb; jata.r[0]++){
+    jata.d[0] = 0;
+    for (jata.r[1] = 0; jata.r[1] < sftorc; jata.r[1]++){
+      for (jata.r[2] = 0; jata.r[2] < sttorc; jata.r[2]++){
+	jata.d[0] += jata.smoothstrf[jata.r[0]][jata.r[1]][jata.r[2]];
+      }
+    }
+    //printf("d[0] is %g\n", jata.d[0]);
+    jata.d[1] = 0;
+    for (jata.r[1] = 0; jata.r[1] < sftorc; jata.r[1]++){
+      for (jata.r[2] = 0; jata.r[2] < sttorc; jata.r[2]++){
+	if (fabs(jata.smoothstrf[jata.r[0]][jata.r[1]][jata.r[2]]) > jata.d[0]){
+	  jata.d[1] += pow((jata.smoothstrf[jata.r[0]][jata.r[1]][jata.r[2]]-jata.d[0]), 2);
+	}
+      }
+    }
+    //printf("d[1] is %g\n", jata.d[1]);
+    jata.d[1] = pow((jata.d[1]/(sftorc*sttorc)), 0.5);
+    //printf("d[1] is %g\n", jata.d[1]);
+    for (jata.r[1] = 0; jata.r[1] < sftorc; jata.r[1]++){
+      for (jata.r[2] = 0; jata.r[2] < sttorc; jata.r[2]++){
+	if (fabs(jata.d[1]) <= 0.00000001) jata.tsmoothstrf[jata.r[0]][jata.r[1]][jata.r[2]] = 10000;
+	else jata.tsmoothstrf[jata.r[0]][jata.r[1]][jata.r[2]] = (jata.smoothstrf[jata.r[0]][jata.r[1]][jata.r[2]] - jata.d[0])/jata.d[1];
+	if (fabs(jata.tsmoothstrf[jata.r[0]][jata.r[1]][jata.r[2]]) < 3) jata.tsmoothstrf[jata.r[0]][jata.r[1]][jata.r[2]] = 0;
+	/*if (fabs(jata.tsmoothstrf[jata.r[0]][jata.r[1]][jata.r[2]]) < 3){
+	  jata.r[3] = 0;
+	  if (jata.r[1]+1 >= ftorc){
+	    if (fabs(jata.tsmoothstrf[jata.r[0]][0][jata.r[2]]) > 3) jata.r[3] = 1;
+	  }
+	  else{
+	    if (fabs(jata.tsmoothstrf[jata.r[0]][jata.r[1]+1][jata.r[2]]) > 3) jata.r[3] = 2;
+	  }
+	  if (jata.r[1]-1 < 0){
+	    if (fabs(jata.tsmoothstrf[jata.r[0]][ftorc-1][jata.r[2]]) > 3) jata.r[3] = 3;
+	  }
+	  else{
+	    if (fabs(jata.tsmoothstrf[jata.r[0]][jata.r[1]-1][jata.r[2]]) > 3) jata.r[3] = 4;
+	  }
+	  if (jata.r[2]+1 >= ttorc){
+	    if (fabs(jata.tsmoothstrf[jata.r[0]][jata.r[1]][0]) > 3) jata.r[3] = 5;
+	  }
+	  else{
+	    if (fabs(jata.tsmoothstrf[jata.r[0]][jata.r[1]][jata.r[2]+1]) > 3) jata.r[3] = 6;
+	  }
+	  if (jata.r[2]-1 < 0){
+	    if (fabs(jata.tsmoothstrf[jata.r[0]][jata.r[1]][ttorc-1]) > 3) jata.r[3] = 7;
+	  }
+	  else{
+	    if (fabs(jata.tsmoothstrf[jata.r[0]][jata.r[1]][jata.r[2]-1]) > 3) jata.r[3] = 8;
+	  }
+	  if (jata.r[3] >= 1){
+	    printf("%d,%d,%d => taken because %d\n", jata.r[0], jata.r[1], jata.r[2], jata.r[3]);
+	    if (fabs(jata.d[1]) <= 0.00000001) jata.tsmoothstrf[jata.r[0]][jata.r[1]][jata.r[2]] = 10000;
+	    else jata.tsmoothstrf[jata.r[0]][jata.r[1]][jata.r[2]] = (jata.smoothstrf[jata.r[0]][jata.r[1]][jata.r[2]] - jata.d[0])/jata.d[1];
+	  }
+	  }*/
+      }
+    }
+  }
+}
+
+void strf_smooth(void)
+{
+  for (jata.r[0] = 0; jata.r[0] < cellnumb; jata.r[0]++){
+    for (jata.r[2] = 0; jata.r[2] < ttorc; jata.r[2]++){
+      //printf("initial s:");
+      for (jata.r[1] = 0; jata.r[1] < ftorc; jata.r[1]++){
+	jata.jfftw.s[jata.r[1]] = jata.avestrf[jata.r[0]][jata.r[1]][jata.r[2]];
+	//printf(" %g", jata.jfftw.s[jata.r[1]]);
+      }
+      //printf("\n");
+      jata.jfftw.n = ftorc;
+      forwardDFT();
+      //printf("complex: ");
+      for (jata.r[1] = 0; jata.r[1] < ftorc/2; jata.r[1]++){
+	//printf("%g + %gi;", jata.jfftw.a[jata.r[1]], jata.jfftw.b[jata.r[1]]);
+      }
+      //printf("\n");
+      jata.jfftw.n = sftorc;
+      for (jata.r[1] = ftorc/2; jata.r[1] < sftorc/2; jata.r[1]++){
+	jata.jfftw.a[jata.r[1]] = 0;
+	jata.jfftw.b[jata.r[1]] = 0;
+      }
+      inverseDFT();
+      //printf("Final s: ");
+      for (jata.r[1] = 0; jata.r[1] < sftorc; jata.r[1]++){
+	jata.smoothstrf[jata.r[0]][jata.r[1]][jata.r[2]] = jata.jfftw.s[jata.r[1]]/ttorc;
+	//printf("%g ", jata.jfftw.s[jata.r[1]]);
+      }
+      //printf("\n");
+      //exit(0);
+    }
+    for (jata.r[1] = 0; jata.r[1] < sftorc; jata.r[1]++){
+      for (jata.r[2] = 0; jata.r[2] < sttorc; jata.r[2]++){
+	//printf("%g ", jata.smoothstrf[jata.r[0]][jata.r[1]][jata.r[2]]);
+      }
+      //printf("\n");
+    }
+    //exit(0);
+    for (jata.r[1] = 0; jata.r[1] < sftorc; jata.r[1]++){
+      //printf("initial st: ");
+      for (jata.r[2] = 0; jata.r[2] < ttorc; jata.r[2]++){
+	jata.jfftw.s[jata.r[2]] = jata.smoothstrf[jata.r[0]][jata.r[1]][jata.r[2]];
+	//printf("%g ", jata.jfftw.s[jata.r[2]]);
+      }
+      //printf("\n");
+      jata.jfftw.n = ttorc;
+      forwardDFT();
+      //printf("complex s: ");
+      for (jata.r[2] = 0; jata.r[2] < ttorc/2; jata.r[2]++){
+	//printf("%g + %gi;", jata.jfftw.a[jata.r[2]], jata.jfftw.b[jata.r[2]]);
+      }
+      //printf("\n");
+      jata.jfftw.n = sttorc;
+      for (jata.r[2] = ttorc/2; jata.r[2] < sttorc/2; jata.r[2]++){
+	jata.jfftw.a[jata.r[2]] = 0;
+	jata.jfftw.b[jata.r[2]] = 0;
+      }
+      inverseDFT();
+      //printf("final st: ");
+      for (jata.r[2] = 0; jata.r[2] < sttorc; jata.r[2]++){
+	jata.smoothstrf[jata.r[0]][jata.r[1]][jata.r[2]] = jata.jfftw.s[jata.r[2]]/ttorc;
+	//printf("%g ", jata.jfftw.s[jata.r[2]]);
+      }
+      //printf("\n");
+    }
+  }
+}
+
+void strf_load_stimprofile(void)
+{
+  for (jata.r[0] = 0; jata.r[0] < ntorc; jata.r[0]++){
+    //sprintf(&jata.fname[0], "./cotorcV/c1torc424v501%d_stimprof.txt", jata.r[0]+1);
+    //sprintf(&jata.fname[0], "./cotorcH/c1torc424h501%d_stimprof.txt", jata.r[0]+1);
+    sprintf(&jata.fname[0], "./cotorcL/c1torc424l501%d_stimprof.txt", jata.r[0]+1);
+    //sprintf(&jata.fname[0], "./cotorcV/c1torc448v501%d_stimprof.txt", jata.r[0]+1);
+    jata.f = fopen(&jata.fname[0], "r");
+    jata.r[2] = 0;
+    while (jata.r[2] >= 0){
+      jata.r[1] = fscanf(jata.f, "%lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf", &jata.torc.stimprofile[jata.r[0]][jata.r[2]][0], &jata.torc.stimprofile[jata.r[0]][jata.r[2]][1], &jata.torc.stimprofile[jata.r[0]][jata.r[2]][2], &jata.torc.stimprofile[jata.r[0]][jata.r[2]][3], &jata.torc.stimprofile[jata.r[0]][jata.r[2]][4], &jata.torc.stimprofile[jata.r[0]][jata.r[2]][5], &jata.torc.stimprofile[jata.r[0]][jata.r[2]][6], &jata.torc.stimprofile[jata.r[0]][jata.r[2]][7], &jata.torc.stimprofile[jata.r[0]][jata.r[2]][8], &jata.torc.stimprofile[jata.r[0]][jata.r[2]][9], &jata.torc.stimprofile[jata.r[0]][jata.r[2]][10], &jata.torc.stimprofile[jata.r[0]][jata.r[2]][11], &jata.torc.stimprofile[jata.r[0]][jata.r[2]][12]);
+      //jata.r[1] = fscanf(jata.f, "%lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf", &jata.torc.stimprofile[jata.r[0]][jata.r[2]][0], &jata.torc.stimprofile[jata.r[0]][jata.r[2]][1], &jata.torc.stimprofile[jata.r[0]][jata.r[2]][2], &jata.torc.stimprofile[jata.r[0]][jata.r[2]][3], &jata.torc.stimprofile[jata.r[0]][jata.r[2]][4], &jata.torc.stimprofile[jata.r[0]][jata.r[2]][5], &jata.torc.stimprofile[jata.r[0]][jata.r[2]][6], &jata.torc.stimprofile[jata.r[0]][jata.r[2]][7], &jata.torc.stimprofile[jata.r[0]][jata.r[2]][8], &jata.torc.stimprofile[jata.r[0]][jata.r[2]][9], &jata.torc.stimprofile[jata.r[0]][jata.r[2]][10], &jata.torc.stimprofile[jata.r[0]][jata.r[2]][11], &jata.torc.stimprofile[jata.r[0]][jata.r[2]][12], &jata.torc.stimprofile[jata.r[0]][jata.r[2]][13], &jata.torc.stimprofile[jata.r[0]][jata.r[2]][14], &jata.torc.stimprofile[jata.r[0]][jata.r[2]][15], &jata.torc.stimprofile[jata.r[0]][jata.r[2]][16], &jata.torc.stimprofile[jata.r[0]][jata.r[2]][17], &jata.torc.stimprofile[jata.r[0]][jata.r[2]][18], &jata.torc.stimprofile[jata.r[0]][jata.r[2]][19], &jata.torc.stimprofile[jata.r[0]][jata.r[2]][20], &jata.torc.stimprofile[jata.r[0]][jata.r[2]][21], &jata.torc.stimprofile[jata.r[0]][jata.r[2]][22], &jata.torc.stimprofile[jata.r[0]][jata.r[2]][23], &jata.torc.stimprofile[jata.r[0]][jata.r[2]][24]);
+      if (jata.r[1] != ttorc){
+	printf("Error loading torc stim profile for %s\n", jata.fname);
+      }
+      jata.r[2]++;
+      if (jata.r[2] >= ftorc){
+	jata.r[2] = -1;
+	break;
+      }
+    }
+    fclose(jata.f);
+  }
+  jata.torc.basep = 250;
+  jata.torc.noct = 5;
+  jata.torc.ripple_count = 90;
+  jata.torc.reps = 5;
+  jata.torc.getsimdata = 1;
+}
+
+void forwardDFT(void)
+{
+  for (jata.jfftw.r[0] = 0; jata.jfftw.r[0] <= jata.jfftw.n / 2; jata.jfftw.r[0]++){
+    jata.jfftw.a[jata.jfftw.r[0]] = 0;
+    jata.jfftw.b[jata.jfftw.r[0]] = 0;
+    for (jata.jfftw.r[1] = 0; jata.jfftw.r[1] < jata.jfftw.n; jata.jfftw.r[1]++){
+      jata.jfftw.a[jata.jfftw.r[0]] += jata.jfftw.s[jata.jfftw.r[1]]*cos(2*M_PI/jata.jfftw.n*jata.jfftw.r[0]*jata.jfftw.r[1]);
+      jata.jfftw.b[jata.jfftw.r[0]] += jata.jfftw.s[jata.jfftw.r[1]]*sin(2*M_PI/jata.jfftw.n*jata.jfftw.r[0]*jata.jfftw.r[1]);
+    }
+    // normalization
+    //jata.jfftw.a[jata.jfftw.r[0]] *= (jata.jfftw.r[0] == 0 || jata.jfftw.r[0] == jata.jfftw.n / 2) ? 1. / jata.jfftw.n : 2. / jata.jfftw.n;
+    //jata.jfftw.b[jata.jfftw.r[0]] *= 2. / jata.jfftw.n;
+  }
+}
+
+void inverseDFT(void)
+{
+  for (jata.jfftw.r[1] = 0; jata.jfftw.r[1] < jata.jfftw.n; jata.jfftw.r[1]++){
+    jata.jfftw.s[jata.jfftw.r[1]] = jata.jfftw.a[0];
+    for (jata.jfftw.r[0] = 1; jata.jfftw.r[0] <= jata.jfftw.n/2; jata.jfftw.r[0]++){
+      jata.jfftw.s[jata.jfftw.r[1]] += jata.jfftw.a[jata.jfftw.r[0]]*cos(2*M_PI/jata.jfftw.n*jata.jfftw.r[0]*jata.jfftw.r[1]) + jata.jfftw.b[jata.jfftw.r[0]]*sin(2*M_PI/jata.jfftw.n*jata.jfftw.r[0]*jata.jfftw.r[1]);
+    }
+  }
+}

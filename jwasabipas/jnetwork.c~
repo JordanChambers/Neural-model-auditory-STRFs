@@ -1,0 +1,175 @@
+void network_run(void)
+{
+  //printf("In network_run\n");
+  network_set_parameters();
+  network_set_inputs();
+  network_set_synapses();
+  jsound_load_carney_torcs();
+  network_sim();
+}
+
+void network_set_parameters(void)
+{
+  jata.jnet.tau = 0.25;
+  jata.jnet.jconv = jata.jnet.tau*jFs/1000.0;
+  jata.jnet.instr = 0.09;//0.1;//0.0125;
+  jata.jnet.tm = 0;
+  jata.jnet.count = 0;
+  for (jata.r[0] = 0; jata.r[0] < cellnumb; jata.r[0]++){
+    jata.jnet.cells[jata.r[0]].v = -70;
+    jata.jnet.cells[jata.r[0]].rmp = -70;
+    jata.jnet.cells[jata.r[0]].vrs = -70;
+    jata.jnet.cells[jata.r[0]].Rm = 4;
+    jata.jnet.cells[jata.r[0]].tau = 10;
+    jata.jnet.cells[jata.r[0]].thres = -40;
+    jata.jnet.cells[jata.r[0]].grp = 0;
+    jata.jnet.cells[jata.r[0]].rptau = 20;
+    jata.jnet.cells[jata.r[0]].grpm = 0;//8e-1;//8e-5;//8e-2;
+    jata.jnet.cells[jata.r[0]].kdr = -85;
+    jata.jnet.cells[jata.r[0]].ea_gmax = 20e-1;//20e-1;
+    jata.jnet.cells[jata.r[0]].ea_tau = 2;
+    jata.jnet.cells[jata.r[0]].ea_e = -30;
+    jata.jnet.cells[jata.r[0]].ia_gmax = 20e-1;//20e-1;
+    jata.jnet.cells[jata.r[0]].ia_tau = 2;
+    jata.jnet.cells[jata.r[0]].ia_e = -90;
+    jata.jnet.cells[jata.r[0]].nstmspos = 0;
+    jata.jnet.cells[jata.r[0]].capdelay = 600;
+    jata.jnet.cells[jata.r[0]].dfas = 1;
+    //if (jata.r[0] == 9) jata.jnet.cells[jata.r[0]].dfas = -1;
+    for (jata.r[1] = 0; jata.r[1] < msyn; jata.r[1]++){
+      jata.jnet.cells[jata.r[0]].esyn[jata.r[1]] = -1;
+      jata.jnet.cells[jata.r[0]].isyn[jata.r[1]] = -1;
+      jata.jnet.cells[jata.r[0]].ewt[jata.r[1]] = 0;
+      jata.jnet.cells[jata.r[0]].iwt[jata.r[1]] = 0;
+    }
+    for (jata.r[1] = 0; jata.r[1] < mapf*jT; jata.r[1]++){
+      jata.jnet.cells[jata.r[0]].nstms[jata.r[1]] = 0;
+    }
+  }
+}
+
+void network_sim(void)
+{
+  jata.jnet.tm = jata.jnet.tau;
+  for (jata.jnet.count = 0; jata.jnet.count < jT*1000.0/jata.jnet.tau; jata.jnet.count++){
+    jata.jnet.tm += jata.jnet.tau;
+    //printf("%d:: net time %g\n", jata.jmpi.id, jata.jnet.tm);
+    //printf("Net time %g (tau %g)\n", jata.jnet.tm, jata.jnet.tau);
+    for (jata.r[0] = 0; jata.r[0] < cellnumb; jata.r[0]++){
+      //printf("cell number is %d\n", jata.r[0]);
+      jata.jnet.g[0] = 0;
+      jata.jnet.g[1] = 0;
+      /*if (jata.jnet.cells[jata.r[0]].dfas >= 0){
+	jata.r[1] = (jata.jnet.count*jata.jnet.jconv) - jata.jnet.cells[jata.r[0]].capdelay;
+	if (jata.r[1] < 0) jata.r[1] = jT*jFs+apdelay-1;
+	jata.r[3] = 0;
+	for (jata.r[2] = 0; jata.r[2] < 17; jata.r[2]++){
+	  if (jata.jnet.cellinputs[jata.r[0]][jata.r[2]] >= 0){
+	    //jata.jnet.g[0] += jata.jnet.inscale[jata.jnet.cellinputs[jata.r[0]][jata.r[2]]]*jata.fas[jata.jnet.cellinputs[jata.r[0]][jata.r[2]]][jata.r[1]];
+	    jata.jnet.g[0] += jata.fas[jata.jnet.cellinputs[jata.r[0]][jata.r[2]]][jata.r[1]];
+	    //printf("fas %g\n", jata.fas[jata.jnet.cellinputs[jata.r[0]][jata.r[2]]][jata.r[1]]);
+	    jata.r[3]++;
+	  }
+	}
+	if (jata.r[3] > 0){
+	  jata.jnet.g[0] = jata.jnet.g[0]/jata.r[3];
+	  jata.jnet.g[0] = -jata.jnet.instr*jata.jnet.g[0];
+	}
+	else jata.jnet.g[0] = 0;
+      }*/
+      //printf("cell number is %d: first %g, %d\n", jata.r[0], jata.jnet.g[0], jata.r[3]);
+      for (jata.r[1] = 0; jata.r[1] < msyn; jata.r[1]++){
+	if (jata.jnet.cells[jata.r[0]].esyn[jata.r[1]] < 0) continue;
+	//printf("synapse number is %d with \n", jata.r[1]);
+	if (jata.jnet.cells[jata.r[0]].esyn[jata.r[1]] < jata.jnet.tm){
+	  if (jata.jnet.tm < jata.jnet.cells[jata.r[0]].esyn[jata.r[1]] + 50){
+	    jata.jnet.g[0] -= (jata.jnet.cells[jata.r[0]].ewt[jata.r[1]]*jata.jnet.cells[jata.r[0]].ea_gmax*(jata.jnet.tm - jata.jnet.cells[jata.r[0]].esyn[jata.r[1]])/jata.jnet.cells[jata.r[0]].ea_tau*exp(-(jata.jnet.tm - jata.jnet.cells[jata.r[0]].esyn[jata.r[1]] - jata.jnet.cells[jata.r[0]].ea_tau)/jata.jnet.cells[jata.r[0]].ea_tau));
+	    //printf("EEEEEEEEEEEEEEEEEEEEEEEEE: %d and %d gives %g\n", jata.r[0], jata.r[1], (jata.jnet.cells[jata.r[0]].ewt[jata.r[1]]*jata.jnet.cells[jata.r[0]].ea_gmax*(jata.jnet.tm - jata.jnet.cells[jata.r[0]].esyn[jata.r[1]])/jata.jnet.cells[jata.r[0]].ea_tau*exp(-(jata.jnet.tm - jata.jnet.cells[jata.r[0]].esyn[jata.r[1]] - jata.jnet.cells[jata.r[0]].ea_tau)/jata.jnet.cells[jata.r[0]].ea_tau)));
+	  }
+	  else{
+	    jata.jnet.cells[jata.r[0]].esyn[jata.r[1]] = -1;
+	  }
+	}
+      }
+      //printf("cell number is %d:second %g\n", jata.r[0], jata.jnet.g[0]);
+      jata.jnet.g[0] = jata.jnet.g[0]*(jata.jnet.cells[jata.r[0]].v - jata.jnet.cells[jata.r[0]].ea_e);
+      //printf("cell number is %d: %g v is %g ea_e is %g\n", jata.r[0], jata.jnet.g[0], jata.jnet.cells[jata.r[0]].v, jata.jnet.cells[jata.r[0]].ea_e);
+      /*if (jata.jnet.cells[jata.r[0]].dfas < 0){
+	jata.r[1] = (jata.jnet.count*jata.jnet.jconv) - jata.jnet.cells[jata.r[0]].capdelay;
+	if (jata.r[1] < 0) jata.r[1] = jT*jFs+apdelay-1;
+	jata.r[3] = 0;
+	for (jata.r[2] = 0; jata.r[2] < 17; jata.r[2]++){
+	  if (jata.jnet.cellinputs[jata.r[0]][jata.r[2]] >= 0){
+	    //jata.jnet.g[0] += jata.jnet.inscale[jata.jnet.cellinputs[jata.r[0]][jata.r[2]]]*jata.fas[jata.jnet.cellinputs[jata.r[0]][jata.r[2]]][jata.r[1]];
+	    jata.jnet.g[1] += jata.fas[jata.jnet.cellinputs[jata.r[0]][jata.r[2]]][jata.r[1]];
+	    //printf("fas %g\n", jata.fas[jata.jnet.cellinputs[jata.r[0]][jata.r[2]]][jata.r[1]]);
+	    jata.r[3]++;
+	  }
+	}
+	if (jata.r[3] > 0){
+	  jata.jnet.g[1] = jata.jnet.g[1]/jata.r[3];
+	  jata.jnet.g[1] = -0.5*jata.jnet.instr*jata.jnet.g[1];
+	}
+	else jata.jnet.g[1] = 0;
+      }*/
+      for (jata.r[1] = 0; jata.r[1] < msyn; jata.r[1]++){
+	if (jata.jnet.cells[jata.r[0]].isyn[jata.r[1]] < 0) continue;
+	if (jata.jnet.cells[jata.r[0]].isyn[jata.r[1]] < jata.jnet.tm){
+	  if (jata.jnet.tm  < jata.jnet.cells[jata.r[0]].isyn[jata.r[1]] + 50){
+	    jata.jnet.g[1] -= (jata.jnet.cells[jata.r[0]].iwt[jata.r[1]]*jata.jnet.cells[jata.r[0]].ia_gmax*(jata.jnet.tm - jata.jnet.cells[jata.r[0]].isyn[jata.r[1]])/jata.jnet.cells[jata.r[0]].ia_tau*exp(-(jata.jnet.tm - jata.jnet.cells[jata.r[0]].isyn[jata.r[1]] - jata.jnet.cells[jata.r[0]].ia_tau)/jata.jnet.cells[jata.r[0]].ia_tau));
+	    //printf("IIIIIIIIIIIIIIIIII: %d and %d gives %g %g\n", jata.r[0], jata.r[1], (jata.jnet.cells[jata.r[0]].iwt[jata.r[1]]*jata.jnet.cells[jata.r[0]].ia_gmax*(jata.jnet.tm - jata.jnet.cells[jata.r[0]].isyn[jata.r[1]])/jata.jnet.cells[jata.r[0]].ia_tau*exp(-(jata.jnet.tm - jata.jnet.cells[jata.r[0]].isyn[jata.r[1]] - jata.jnet.cells[jata.r[0]].ia_tau)/jata.jnet.cells[jata.r[0]].ia_tau)), jata.jnet.cells[jata.r[0]].iwt[jata.r[1]]);
+	  }
+	  else{
+	    jata.jnet.cells[jata.r[0]].isyn[jata.r[1]] = -1;
+	  }
+	}
+      }
+      //printf("%d g[1] = %g\n", jata.r[0], jata.jnet.g[1]);
+      jata.jnet.g[1] = jata.jnet.g[1]*(jata.jnet.cells[jata.r[0]].v - jata.jnet.cells[jata.r[0]].ia_e);
+      //if (jata.jnet.cells[jata.r[0]].v < jata.jnet.cells[jata.r[0]].ia_e) jata.jnet.g[1] = 0;
+      //if (jata.r[0] == 13) printf("g[0] is %g and g[1] is %g\n", jata.jnet.g[0], jata.jnet.g[1]);
+      //printf("cell numb %d: %g and %g %g %g %g %g %g %g %g\n", jata.r[0], jata.jnet.g[0], jata.jnet.g[1], jata.jnet.cells[jata.r[0]].v, (jata.jnet.tau/jata.jnet.cells[jata.r[0]].tau), jata.jnet.cells[jata.r[0]].Rm, jata.jnet.cells[jata.r[0]].grp, (jata.jnet.cells[jata.r[0]].Rm*(jata.jnet.g[0] - jata.jnet.g[1])), (jata.jnet.cells[jata.r[0]].Rm*jata.jnet.cells[jata.r[0]].grp*(jata.jnet.cells[jata.r[0]].v - jata.jnet.cells[jata.r[0]].kdr)));
+      jata.jnet.cells[jata.r[0]].v = jata.jnet.cells[jata.r[0]].v + (jata.jnet.tau/jata.jnet.cells[jata.r[0]].tau)*(jata.jnet.cells[jata.r[0]].rmp - jata.jnet.cells[jata.r[0]].v + (jata.jnet.cells[jata.r[0]].Rm*(9 + jata.jnet.g[0] + jata.jnet.g[1])) - (jata.jnet.cells[jata.r[0]].Rm*jata.jnet.cells[jata.r[0]].grp*(jata.jnet.cells[jata.r[0]].v - jata.jnet.cells[jata.r[0]].kdr)));
+      if (jata.jnet.cells[jata.r[0]].v < jata.jnet.cells[jata.r[0]].ia_e) jata.jnet.cells[jata.r[0]].v = jata.jnet.cells[jata.r[0]].ia_e;
+      //printf("cell numb %d: %g and %g %g %g %g %g %g\n", jata.r[0], jata.jnet.g[0], jata.jnet.g[1], jata.jnet.cells[jata.r[0]].v, (jata.jnet.tau/jata.jnet.cells[jata.r[0]].tau), jata.jnet.cells[jata.r[0]].Rm, jata.jnet.cells[jata.r[0]].grp);
+      jata.jnet.cells[jata.r[0]].grp = jata.jnet.cells[jata.r[0]].grp*(1-(jata.jnet.tau/jata.jnet.cells[jata.r[0]].rptau));
+      //if (jata.r[0] == 13) printf("%g %g\n", jata.jnet.tm, jata.jnet.cells[jata.r[0]].v);
+      if (jata.jnet.cells[jata.r[0]].v > jata.jnet.cells[jata.r[0]].thres){
+	//printf("found ap %d %g %d %g %g %g\n", jata.r[0], jata.jnet.cells[jata.r[0]].nstms[jata.jnet.cells[jata.r[0]].nstmspos-1], jata.jnet.cells[jata.r[0]].nstmspos, jata.jnet.cells[jata.r[0]].grp, jata.jnet.cells[jata.r[0]].v + (jata.jnet.tau/jata.jnet.cells[jata.r[0]].tau)*(jata.jnet.cells[jata.r[0]].rmp - jata.jnet.cells[jata.r[0]].v + (jata.jnet.cells[jata.r[0]].Rm*(jata.jnet.g[0] - jata.jnet.g[1])) - (jata.jnet.cells[jata.r[0]].Rm*jata.jnet.cells[jata.r[0]].grp*(jata.jnet.cells[jata.r[0]].v - jata.jnet.cells[jata.r[0]].kdr))), jata.jnet.cells[jata.r[0]].v + (jata.jnet.tau/jata.jnet.cells[jata.r[0]].tau)*(jata.jnet.cells[jata.r[0]].rmp - jata.jnet.cells[jata.r[0]].v + (jata.jnet.cells[jata.r[0]].Rm*(jata.jnet.g[0] - jata.jnet.g[1]))));
+	jata.jnet.cells[jata.r[0]].v = jata.jnet.cells[jata.r[0]].vrs;
+	jata.jnet.cells[jata.r[0]].nstms[jata.jnet.cells[jata.r[0]].nstmspos] = jata.jnet.tm;
+	jata.jnet.cells[jata.r[0]].nstmspos++;
+	if (jata.jnet.cells[jata.r[0]].nstmspos >= mapf*jT){
+	  //printf("Nooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo\n");
+	  jata.jnet.cells[jata.r[0]].nstmspos--;
+	}
+	jata.jnet.cells[jata.r[0]].grp += jata.jnet.cells[jata.r[0]].grpm;
+	for (jata.r[1] = 0; jata.r[1] < cellnumb; jata.r[1]++){
+	  if (jata.jnet.cells[jata.r[0]].eout[jata.r[1]] < 0) continue;
+	  for (jata.r[2] = 0; jata.r[2] < msyn; jata.r[2]++){
+	    if (jata.jnet.cells[jata.jnet.cells[jata.r[0]].eout[jata.r[1]]].esyn[jata.r[2]] > 0) continue;
+	    //printf("ADDING SYNAPTIC POTENTIAL!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
+	    jata.jnet.cells[jata.jnet.cells[jata.r[0]].eout[jata.r[1]]].esyn[jata.r[2]] = jata.jnet.tm + jata.jnet.cells[jata.r[0]].edlay[jata.r[1]];
+	    jata.jnet.cells[jata.jnet.cells[jata.r[0]].eout[jata.r[1]]].ewt[jata.r[2]] = jata.jnet.cells[jata.r[0]].estn[jata.r[1]];
+	    break;
+	  }
+	}
+	for (jata.r[1] = 0; jata.r[1] < cellnumb; jata.r[1]++){
+	  if (jata.jnet.cells[jata.r[0]].iout[jata.r[1]] < 0) continue;
+	  for (jata.r[2] = 0; jata.r[2] < msyn; jata.r[2]++){
+	    if (jata.jnet.cells[jata.jnet.cells[jata.r[0]].iout[jata.r[1]]].isyn[jata.r[2]] > 0) continue;
+	    jata.jnet.cells[jata.jnet.cells[jata.r[0]].iout[jata.r[1]]].isyn[jata.r[2]] = jata.jnet.tm + jata.jnet.cells[jata.r[0]].idlay[jata.r[1]];
+	    jata.jnet.cells[jata.jnet.cells[jata.r[0]].iout[jata.r[1]]].iwt[jata.r[2]] = jata.jnet.cells[jata.r[0]].istn[jata.r[1]];
+	    //printf("Added IPSP for %d\n", jata.r[0]);
+	    break;
+	  }
+	}
+      }
+    }
+  }
+  //exit(0);
+  //printf("%d:: tm is %g; %d aps\n", jata.jmpi.id, jata.jnet.tm, jata.jnet.cells[jata.jga.cindex].nstmspos);
+  /*for (jata.r[0] = 0; jata.r[0] < cellnumb; jata.r[0]++){
+    printf("%d has %d nstimpos\n", jata.r[0], jata.jnet.cells[jata.r[0]].nstmspos);
+    }*/
+}
