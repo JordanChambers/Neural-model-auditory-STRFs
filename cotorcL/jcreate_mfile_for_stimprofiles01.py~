@@ -1,0 +1,178 @@
+import string
+
+def scan_torc_txts():
+    bfn = '/cygdrive/c/jordan/bme/baphy/SoundObjects/@Torc/Sounds/TORC_424_%s_h501.txt'
+    data = {}
+    for tnumb in range(1,31):
+        data[tnumb] = {}
+        if tnumb < 10:
+            stn = '0%d' % (tnumb)
+        else:
+            stn = '%d' % (tnumb)
+        f = open(bfn % (stn), 'r')
+        for line in f.readlines():
+            #print tnumb, line
+            info = string.split(line)
+            if len(info) < 1:
+                continue
+            if info[0] in ['Ripple']:
+                if info[1] in ['amplitudes']:
+                    data[tnumb]['amp'] = []
+                    if '=' not in info:
+                        print "Error with = sign in amplitudes"
+                        print info
+                        killnow()
+                    for jnumb in info[1+info.index('='):]:
+                        if '(' in jnumb:
+                            jnumb = string.replace(jnumb, '(', '')
+                        if ')' in jnumb:
+                            jnumb = string.replace(jnumb, ')', '')
+                        jnumb = string.strip(jnumb)
+                        if len(jnumb) < 1:
+                            continue
+                        data[tnumb]['amp'].append(string.atof(jnumb))
+                if info[1] in ['frequencies']:
+                    data[tnumb]['freq'] = []
+                    if '=' not in info:
+                        print "Error with = sign in frequencies"
+                        print info
+                        killnow()
+                    for jnumb in info[1+info.index('='):]:
+                        if '(' in jnumb:
+                            jnumb = string.replace(jnumb, '(', '')
+                        if ')' in jnumb:
+                            jnumb = string.replace(jnumb, ')', '')
+                        jnumb = string.strip(jnumb)
+                        if len(jnumb) < 1:
+                            continue
+                        if jnumb in ['cyc/oct']:
+                            continue
+                        data[tnumb]['freq'].append(string.atof(jnumb))
+                if info[1] in ['phase']:
+                    data[tnumb]['phase'] = []
+                    if '=' not in info:
+                        print "Error with = sign in phases"
+                        print info
+                        killnow()
+                    for jnumb in info[1+info.index('='):]:
+                        if '(' in jnumb:
+                            jnumb = string.replace(jnumb, '(', '')
+                        if ')' in jnumb:
+                            jnumb = string.replace(jnumb, ')', '')
+                        jnumb = string.strip(jnumb)
+                        if len(jnumb) < 1:
+                            continue
+                        if jnumb in ['deg']:
+                            continue
+                        data[tnumb]['phase'].append(string.atof(jnumb))
+            if info[0] in ['Angular']:
+                if info[1] in ['frequencies']:
+                    data[tnumb]['ang'] = []
+                    if '=' not in info:
+                        print "Error with = sign in angular freq"
+                        print info
+                        killnow()
+                    jrint = 0
+                    for jnumb in info[1+info.index('='):]:
+                        if '(' in jnumb:
+                            jnumb = string.replace(jnumb, '(', '')
+                        if ')' in jnumb:
+                            jnumb = string.replace(jnumb, ')', '')
+                        jnumb = string.strip(jnumb)
+                        if len(jnumb) < 1:
+                            continue
+                        if jnumb in ['Hz']:
+                            continue
+                        data[tnumb]['ang'].append(string.atof(jnumb))
+                        if data[tnumb]['ang'][-1] > 25:
+                            jrint = 1
+                    if jrint == 1:
+                        print tnumb, line
+            if info[0] in ['Lower']:
+                if info[1] in ['frequency']:
+                    data[tnumb]['lfc'] = string.atoi(info[-2])
+            if info[0] in ['Upper']:
+                if info[1] in ['frequency']:
+                    data[tnumb]['ufc'] = string.atoi(info[-2])
+    #print data
+    omegap = []
+    omegan = []
+    vels = []
+    lfc = 100000
+    ufc = 0
+    for tnumb in data.keys():
+        for freq in data[tnumb]['freq']:
+            if freq > 0:
+                if freq not in omegap:
+                    omegap.append(freq)
+            elif freq < 0:
+                if freq not in omegan:
+                    omegan.append(freq)
+            else:
+                if freq not in omegap:
+                    omegap.append(freq)
+                if freq not in omegan:
+                    omegan.append(freq)
+        for vel in data[tnumb]['ang']:
+            if vel not in vels:
+                vels.append(vel)
+        if data[tnumb]['lfc'] < lfc:
+            lfc = data[tnumb]['lfc']
+        if data[tnumb]['ufc'] > ufc:
+            ufc = data[tnumb]['ufc']
+    omegap.sort()
+    omegan.sort()
+    omegan.reverse()
+    vels.sort()
+    print omegap
+    print omegan
+    print vels
+    print lfc, ufc
+    lp = range(0,len(omegap))
+    ln = range(0,len(omegan))
+    k = range(len(vels))
+    st = 'function htorcs()\n'
+    st += '\tOmega = ['
+    for ji in range(len(omegap)):
+        st += '%g %g;' % (omegap[ji], omegan[ji])
+    st += '];\n'
+    st += '\tW = ['
+    for ji in range(len(vels)):
+        st += ' %d' % (vels[ji])
+    st += '];\n'
+    st += '\tk = ['
+    for ji in range(len(k)):
+        st += ' %d' % (k[ji]+1)
+    st += '];\n'
+    st += '\tl = ['
+    for ji in range(len(lp)):
+        st += '%d %d;' % (lp[ji], -ln[ji])
+    st += '];\n'
+    for tnumb in range(1,31):
+        st += '\tamp = ['
+        for amp in data[tnumb]['amp']:
+            st += '%g ' % (amp)
+        st += '];\n'
+        st += '\tphase = ['
+        for amp in data[tnumb]['phase']:
+            st += '%g ' % (amp)
+        st += '];\n'
+        st += '\tang = ['
+        for amp in data[tnumb]['ang']:
+            st += '%d ' % (amp)
+        st += '];\n'
+        st += '\tfreq = ['
+        for amp in data[tnumb]['freq']:
+            st += '%g ' % (amp)
+        st += '];\n'
+        st += '\tjcreate_stim_profile(%d, amp, phase, ang, freq, 15, 13, k, l, W, Omega);\n' % (tnumb)
+    st += 'end\n\n'
+    st += "function ststims = jcreate_stim_profile(numrec, ampl, phsl, rates, scales, numcomp, leng, k, l, W, Omega)\n\twaveParams = zeros(2,length(k),length(l(:,1)),2);\n\tfor cnum = 1:length(ampl)\n\t\tamp = ampl(cnum);\n\t\tphs = phsl(cnum);\n\t\tif amp < 0\n\t\t\tamp = abs(amp);\n\t\t\tphs = phs - 180;\n\t\tend\n\t\ttemp = rates(cnum);\n\t\tii = temp<0;\n\t\tveli = find(W==abs(temp));\n\t\ttemp = scales(cnum);\n\t\tif ii\n\t\t\ttemp = -temp;\n\t\t\tphs = -(phs+90)-90;\n\t\tend\n\t\tif temp\n\t\t\t[frqi,sgn]=find(Omega==temp);\n\t\telse\n\t\t\tfrqi = 1;\n\t\t\tsgn = 1;\n\t\tend\n\t\twaveParams(:,veli,frqi,sgn) = [amp phs];\n\tend\n\tstimHolder = zeros(numcomp,leng);\n\tc = [floor(numcomp/2)+1,floor(leng/2)+1];\n\tcount = 0;\n\tfor row = 1:length(k)\n\t\tfor sgn = 1:2\n\t\t\tfor col = 1:size(l(:,1))\n\t\t\t\tcount = count + 1;\n\t\t\t\tamp = waveParams(1,row,col,sgn);\n\t\t\t\tphs = waveParams(2,row,col,sgn);\n\t\t\t\tif amp\n\t\t\t\t\tstimHolder(c(1)+l(col,sgn),c(2)+k(row))= (amp/2)*exp(1i*(phs-90)*pi/180);\n\t\t\t\t\tstimHolder(c(1)-l(col,sgn),c(2)-k(row))= (amp/2)*exp(-1i*(phs-90)*pi/180);\n\t\t\t\tend\n\t\t\tend\n\t\tend\n\tend\n\tststims = real(ifft2(ifftshift(stimHolder*(leng*numcomp))));\n\tscl = max(abs([min(min(ststims)),max(max(ststims))]));\n\tststims = ststims*0.9/scl;\n\tf = fopen(sprintf('c1torc424h501%d_stimprof.txt',numrec), 'w');\n\tfor ftorc = 1:15\n\t\tfor ttorc = 1:13\n\t\t\tfprintf(f, '%g ', ststims(ftorc,ttorc));\n\t\tend\n\t\tfprintf(f, '\\n');\n\tend\nend"
+    print st
+    f = open('htorcs.m', 'w')
+    f.write(st)
+    f.close()
+    return
+
+
+scan_torc_txts()
